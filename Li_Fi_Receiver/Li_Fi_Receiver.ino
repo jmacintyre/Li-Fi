@@ -17,8 +17,8 @@
 int PR = A0; // photoresisitor pin
 
 /* Static Global Variables */
-int  NUM_SIGNAL_READS =   5; // time inbetween each intensity reading
-long BIT_READ_DELAY   =  10; // delay inbetween reading each bit
+int  NUM_SIGNAL_READS =   7; // time inbetween each intensity reading
+long BIT_READ_DELAY   =   2; // delay inbetween reading each bit
 int  DATA_LENGTH      =  15; // length of message in bits
 
 int  ON_THRESHOLD = 100; // sensitivity +/- threshold for interrupt
@@ -77,7 +77,7 @@ void sample_environment(){
  *  
  *    Description: Receive data
  */
-float receive_data(float intensityRead[ 15 /* num bits */ ][ 5 /* number of readings */ ]){
+float receive_data(float intensityRead[ 15 /* num bits */ ][ 7 /* number of readings */ ]){
   
   Serial.print("Received");
 
@@ -111,7 +111,7 @@ float receive_data(float intensityRead[ 15 /* num bits */ ][ 5 /* number of read
  *  
  *    Description: Format data
  */
-int *format_data(float intensityRead[ 15 /* num bits */ ][ 5 /* number of readings */ ], int message[ 15 /* num bits */ ]){
+int *format_data(float intensityRead[ 15 /* num bits */ ][ 7 /* number of readings */ ], int message[ 15 /* num bits */ ]){
 
   int on  = 0;
   int off = 0;
@@ -174,7 +174,7 @@ void setup() {
 /* Main Loop */
 void loop() {  
 
-    float intensityRead[ 15 /* num bits */ ][ 5 /* number of readings */ ]; // saves each reading
+    float intensityRead[ 15 /* num bits */ ][ 7 /* number of readings */ ]; // saves each reading
     int message[ 15 /* num bits */ ];                                        // array of bits received
     
     if( numReadEnv == 0 || get_current_time() - timeEnvUpdate > RECALIBRATE_RATE ) {
