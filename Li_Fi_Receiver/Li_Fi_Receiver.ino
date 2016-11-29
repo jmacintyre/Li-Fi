@@ -17,13 +17,15 @@
 int PR = A0; // photoresisitor pin
 
 /* Static Global Variables */
-long BIT_TIME_BLOCK =  1000; // time duration to receive a bit
-int  DATA_LENGTH    =    15; // length of message in bits
-int  THRESHOLD      =   200; // sensitivity +/- threshold for interrupt
+int  NUM_SIGNAL_READS =   5; // time inbetween each intensity reading
+long BIT_READ_DELAY   =  10; // delay inbetween reading each bit
+int  DATA_LENGTH      =  15; // length of message in bits
+
+int  ON_THRESHOLD = 100; // sensitivity +/- threshold for interrupt
 
 long ENV_SAMPLE_RATE  =     5; // sampling rate to find ambient light intensity
 long RECALIBRATE_RATE =  5000; // environment re-sampling rate
-int  REQ_ENV_SAMPLES  =   100; // total number of readings needed to obtain sufficient intensity average for environment
+int  REQ_ENV_SAMPLES  =   200; // total number of readings needed to obtain sufficient intensity average for environment
 
 /* Dynamic Global Variables */
 long  timeEnvUpdate = 0; // time of last calibration
@@ -32,10 +34,6 @@ long  timePrev      = 0; // variable to hold time returned by millis()
 float avgEnv     = 0; // current average of ambient light intensity for environment
 long  sumEnv     = 0; // sum of intensity readings
 long  numReadEnv = 0; // current number of intensity readings recorded
-
-float avgRec = 0; // average intensity of received signal
-long  sumRec = 0; // sum of received signal's intensities
-long  numRec = 0; // number of readings received
 
 /* Functions */
 
@@ -48,12 +46,13 @@ long  numRec = 0; // number of readings received
  */
 void sample_environment(){
 
-  Serial.println("Calibrating...");
+  Serial.print( "Calibrating... " );
+  Serial.print( "|" );
   avgEnv     = 0; // Reset average
   sumEnv     = 0; // Reset sum 
   numReadEnv = 0; // Reset number of readings
 
-  while( numReadEnv < REQ_ENV_SAMPLES){
+  while( numReadEnv < REQ_ENV_SAMPLES ){
   
     if( get_current_time() - timePrev > ENV_SAMPLE_RATE ) {
       
@@ -62,10 +61,14 @@ void sample_environment(){
       sumEnv += get_signal();
       numReadEnv++;
       avgEnv = sumEnv / numReadEnv;
+      
+      if( numReadEnv % 10 == 0 ){
+        Serial.print( "#" ); 
+      }
     }
   }
-  Serial.print("Current ENV: ");
-  Serial.println(avgEnv);
+  Serial.print( "| " );
+  Serial.println( avgEnv );
   timeEnvUpdate = get_current_time();
 }
 
@@ -74,32 +77,71 @@ void sample_environment(){
  *  
  *    Description: Receive data
  */
-void receive_data(){
+float receive_data(float intensityRead[ 15 /* num bits */ ][ 5 /* number of readings */ ]){
   
-  Serial.println("DATA");
-  Serial.print("Received: ");
+  Serial.print("Received");
 
-  for(int i = 0; i < DATA_LENGTH; i++){
-        
-    avgRec = 0; // Reset average
-    sumRec = 0; // Reset sum 
-    numRec = 0; // Reset number of readings
+  for( int i = 0; i < DATA_LENGTH; i++ ){
     
     timePrev = get_current_time();
-    
-    while( get_current_time() - timePrev < BIT_TIME_BLOCK ) {
+
+    for( int k = 0; k < NUM_SIGNAL_READS; k++ ){
       
-      sumRec += get_signal();
-      numRec++;
-      avgRec = sumRec / numRec;
+      timePrev = get_current_time();
+      
+      while( get_current_time() - timePrev < BIT_READ_DELAY ){
+        
+        if( get_current_time() - timePrev < ( BIT_READ_DELAY / 2 ) ){
+
+          intensityRead[ i ][ k ] = get_signal();
+        }
+      }
+      Serial.print("(");
+      Serial.print(i);
+      Serial.print(",");
+      Serial.print(k);
+      Serial.print(") =");
+      Serial.println(intensityRead[i][k]);
     }
-    if(avgRec - avgEnv > THRESHOLD){
-      Serial.print(1); 
-    } else{
-      Serial.print(0);
+  }  
+}
+
+/* 
+ *  void format_data()
+ *  
+ *    Description: Format data
+ */
+int *format_data(float intensityRead[ 15 /* num bits */ ][ 5 /* number of readings */ ], int message[ 15 /* num bits */ ]){
+
+  int on  = 0;
+  int off = 0;
+
+  for( int i = 0; i < DATA_LENGTH; i++ ){
+
+    for( int k = 0; k < NUM_SIGNAL_READS; k++ ){
+    
+      if( intensityRead[ i ][ k ] - avgEnv >= ON_THRESHOLD){
+        
+        on++; 
+      } else {
+        
+        off++;
+      }
     }
+
+    if( on > off ){
+
+      message[ i ] = 1;
+    } else {
+
+      message[ i ] = 0;
+    }
+    Serial.print(message[ i ]);
+    on = 0;
+    off = 0;
   }
   Serial.println();
+  return message;
 }
 
 /* 
@@ -131,11 +173,17 @@ void setup() {
 
 /* Main Loop */
 void loop() {  
+
+    float intensityRead[ 15 /* num bits */ ][ 5 /* number of readings */ ]; // saves each reading
+    int message[ 15 /* num bits */ ];                                        // array of bits received
     
     if( numReadEnv == 0 || get_current_time() - timeEnvUpdate > RECALIBRATE_RATE ) {
+      
       sample_environment();
-    } else if( get_signal() > ( int( avgEnv ) + THRESHOLD ) ){
-      receive_data();
+    } else if( get_signal() > ( int( avgEnv ) + ON_THRESHOLD ) ){
+      
+      receive_data(intensityRead);
+      format_data(intensityRead, message);
       sample_environment();
     }
 }
