@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en" ng-app=ToDo>
+  <head>
+    <meta charset="utf-8">
+    <title>Li-Fi</title>
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
+  </head>
+  <body>
+    <div ng-controller="todoController">
+      <div class="main-banner">
+        <p class="banner-text">
+          Li-Fi<br>
+          <span class="subtitle">[ Live Demo ]</span>
+        </p>
+      </div>
+      <!-- <form name="frm" ng-submit="addTodo()">
+        <input type="text" name="newtodo" ng-model="newTodo" required />
+        <button ng-disabled="frm.$invalid">Go</button>
+      </form>
+      <button ng-click="clearCompleted()">Clear Completed</button>
+      <ul>
+        <li ng-repeat="todo in todos">
+          <input type="checkbox" ng-model="todo.done">
+          <span ng-class="{'done':todo.done}">{{ todo.title }}</span>
+        </li>
+      </ul> -->
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>
