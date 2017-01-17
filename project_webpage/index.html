@@ -5,15 +5,19 @@
     <title>Li-Fi</title>
     <link rel="stylesheet" type="text/css" href="css/style.css">
     <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
+
   </head>
   <body>
-    <div ng-controller="todoController">
+    <div ng-controller="someCtrl">
       <div class="main-banner">
         <p class="banner-text">
           Li-Fi<br>
           <span class="subtitle">[ Live Demo ]</span>
         </p>
       </div>
+      <button onclick="myFunction()">Get Messages</button>
+      <p><div class="data" w3-include-html="data.html"></div></p>
+
       <!-- <form name="frm" ng-submit="addTodo()">
         <input type="text" name="newtodo" ng-model="newTodo" required />
         <button ng-disabled="frm.$invalid">Go</button>
@@ -28,5 +32,14 @@
     </div>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
     <script src="js/app.js"></script>
+    <script src="http://www.w3schools.com/lib/w3data.js"></script>
+    <script>
+     w3IncludeHTML();
+    </script>
+    <script>
+    function myFunction() {
+      location.reload();
+    }
+    </script>
   </body>
 </html>

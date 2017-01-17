@@ -17,15 +17,15 @@
 int PR = A0; // photoresisitor pin
 
 /* Static Global Variables */
-int  NUM_SIGNAL_READS =   7; // time inbetween each intensity reading
-long BIT_READ_DELAY   =   2; // delay inbetween reading each bit
-int  DATA_LENGTH      =  15; // length of message in bits
+#define NUM_SIGNAL_READS  3 // time inbetween each intensity reading
+#define BIT_READ_DELAY   15 // delay inbetween reading each bit
+#define DATA_LENGTH      34 // length of message in bits
 
-int  ON_THRESHOLD = 100; // sensitivity +/- threshold for interrupt
+#define ON_THRESHOLD 50 // sensitivity +/- threshold for interrupt
 
-long ENV_SAMPLE_RATE  =     5; // sampling rate to find ambient light intensity
-long RECALIBRATE_RATE =  5000; // environment re-sampling rate
-int  REQ_ENV_SAMPLES  =   200; // total number of readings needed to obtain sufficient intensity average for environment
+#define ENV_SAMPLE_RATE      5 // sampling rate to find ambient light intensity
+#define RECALIBRATE_RATE 35000 // environment re-sampling rate
+#define REQ_ENV_SAMPLES    200 // total number of readings needed to obtain sufficient intensity average for environment
 
 /* Dynamic Global Variables */
 long  timeEnvUpdate = 0; // time of last calibration
@@ -46,8 +46,8 @@ long  numReadEnv = 0; // current number of intensity readings recorded
  */
 void sample_environment(){
 
-  Serial.print( "Calibrating... " );
-  Serial.print( "|" );
+//  Serial.print( "Calibrating... " );
+//  Serial.print( "|" );
   avgEnv     = 0; // Reset average
   sumEnv     = 0; // Reset sum 
   numReadEnv = 0; // Reset number of readings
@@ -63,12 +63,12 @@ void sample_environment(){
       avgEnv = sumEnv / numReadEnv;
       
       if( numReadEnv % 10 == 0 ){
-        Serial.print( "#" ); 
+//        Serial.print( "#" ); 
       }
     }
   }
-  Serial.print( "| " );
-  Serial.println( avgEnv );
+//  Serial.print( "| " );
+//  Serial.println( avgEnv );
   timeEnvUpdate = get_current_time();
 }
 
@@ -77,9 +77,9 @@ void sample_environment(){
  *  
  *    Description: Receive data
  */
-float receive_data(float intensityRead[ 15 /* num bits */ ][ 7 /* number of readings */ ]){
+float receive_data(float intensityRead[ DATA_LENGTH ][ NUM_SIGNAL_READS ]){
   
-  Serial.print("Received");
+//  Serial.print("Received");
 
   for( int i = 0; i < DATA_LENGTH; i++ ){
     
@@ -96,12 +96,12 @@ float receive_data(float intensityRead[ 15 /* num bits */ ][ 7 /* number of read
           intensityRead[ i ][ k ] = get_signal();
         }
       }
-      Serial.print("(");
-      Serial.print(i);
-      Serial.print(",");
-      Serial.print(k);
-      Serial.print(") =");
-      Serial.println(intensityRead[i][k]);
+//      Serial.print("(");
+//      Serial.print(i);
+//      Serial.print(",");
+//      Serial.print(k);
+//      Serial.print(") =");
+//      Serial.println(intensityRead[i][k]);
     }
   }  
 }
@@ -111,7 +111,7 @@ float receive_data(float intensityRead[ 15 /* num bits */ ][ 7 /* number of read
  *  
  *    Description: Format data
  */
-int *format_data(float intensityRead[ 15 /* num bits */ ][ 7 /* number of readings */ ], int message[ 15 /* num bits */ ]){
+int *format_data(float intensityRead[ DATA_LENGTH ][ NUM_SIGNAL_READS ], int message[ DATA_LENGTH ]){
 
   int on  = 0;
   int off = 0;
@@ -136,11 +136,10 @@ int *format_data(float intensityRead[ 15 /* num bits */ ][ 7 /* number of readin
 
       message[ i ] = 0;
     }
-    Serial.print(message[ i ]);
     on = 0;
     off = 0;
   }
-  Serial.println();
+//  Serial.println();
   return message;
 }
 
@@ -164,6 +163,12 @@ unsigned long get_current_time(){
   return timeCurr;
 }
 
+void send_data(int message[ DATA_LENGTH ]){
+  for( int i = 0; i < DATA_LENGTH; i++){
+    Serial.print(int(message[ i ]));
+  }
+}
+
 /* Setup */  
 void setup() {
   
@@ -174,8 +179,8 @@ void setup() {
 /* Main Loop */
 void loop() {  
 
-    float intensityRead[ 15 /* num bits */ ][ 7 /* number of readings */ ]; // saves each reading
-    int message[ 15 /* num bits */ ];                                        // array of bits received
+    float intensityRead[ DATA_LENGTH ][ NUM_SIGNAL_READS ]; // saves each reading
+    int message[ DATA_LENGTH ];                                        // array of bits received
     
     if( numReadEnv == 0 || get_current_time() - timeEnvUpdate > RECALIBRATE_RATE ) {
       
@@ -184,6 +189,7 @@ void loop() {
       
       receive_data(intensityRead);
       format_data(intensityRead, message);
+      send_data(message);
       sample_environment();
     }
 }

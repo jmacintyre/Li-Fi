@@ -2,11 +2,35 @@
   text-decoration: line-through;
 }
 
+.data{
+  background-color: #fff;
+  box-shadow: 2px 2px 2px black;
+  border-color: black;
+  width: 50em;
+  text-align: center;
+  margin: auto;
+  margin-top: 2em;
+  padding-top: 2em;
+  padding-bottom: 2em;
+  font-family: monospace;
+}
+
+button{
+  margin-top: 2em;
+  padding: 1em;
+  border-radius: 3px;
+  box-shadow: 2px 2px 2px black;
+  border-color: black;
+  background-color: #ffb380;
+  font-weight: bold;
+}
+
 body{
   background-color: #454f5b;
   margin: 0;
   padding: 0;
   font-family: 'Montserrat', sans-serif;
+  text-align: center;
 }
 
 .main-banner{
